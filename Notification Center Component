@@ -1,0 +1,37 @@
+import React, { useState, useEffect } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+
+const defaultBreakTimes = [
+  { time: '10:00', description: 'Morning Break' },
+  { time: '13:00', description: 'Midday Break' },
+  { time: '16:00', description: 'Afternoon Break' }
+];
+
+const NotificationCenter = () => {
+  const [breakTimes, setBreakTimes] = useState(defaultBreakTimes);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const checkNotifications = () => {
+      const now = new Date();
+      const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      breakTimes.forEach(breakTime => {
+        if (currentTime === breakTime.time) {
+          toast({
+            title: "Break Time!",
+            description: `${breakTime.description} - Take a 10-minute rest`,
+            variant: "default"
+          });
+        }
+      });
+    };
+
+    const interval = setInterval(checkNotifications, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [breakTimes]);
+
+  return null; // Renders no visible UI
+};
+
+export default NotificationCenter;
