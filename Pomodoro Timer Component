@@ -1,0 +1,82 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const PomodoroTimer = () => {
+  const [minutes, setMinutes] = useState(45);
+  const [seconds, setSeconds] = useState(0);
+  const [isActive, setIsActive] = useState(false);
+  const [completedCycles, setCompletedCycles] = useState(0);
+  const [isBreakTime, setIsBreakTime] = useState(false);
+
+  useEffect(() => {
+    let interval = null;
+    if (isActive) {
+      interval = setInterval(() => {
+        if (seconds > 0) {
+          setSeconds(seconds - 1);
+        } else if (minutes > 0) {
+          setMinutes(minutes - 1);
+          setSeconds(59);
+        } else {
+          clearInterval(interval);
+          if (!isBreakTime) {
+            // Work session complete
+            setCompletedCycles(prev => prev + 1);
+            setIsBreakTime(true);
+            setMinutes(5);
+            setSeconds(0);
+            setIsActive(true);
+          } else {
+            // Break complete
+            setIsBreakTime(false);
+            setMinutes(45);
+            setSeconds(0);
+            setIsActive(false);
+          }
+        }
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isActive, minutes, seconds, isBreakTime]);
+
+  const toggleTimer = () => {
+    setIsActive(!isActive);
+  };
+
+  const resetTimer = () => {
+    setMinutes(45);
+    setSeconds(0);
+    setIsActive(false);
+    setIsBreakTime(false);
+  };
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>
+          {isBreakTime ? 'Break Time' : 'Focus Session'} 
+          - Cycles: {completedCycles}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-6xl font-bold text-center mb-4">
+          {minutes.toString().padStart(2, '0')}:
+          {seconds.toString().padStart(2, '0')}
+        </div>
+        <div className="flex justify-center space-x-4">
+          <Button onClick={toggleTimer}>
+            {isActive ? 'Pause' : 'Start'}
+          </Button>
+          <Button variant="secondary" onClick={resetTimer}>
+            Reset
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default PomodoroTimer;
