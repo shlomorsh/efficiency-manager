@@ -1,0 +1,53 @@
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Sidebar from './components/Sidebar';
+import Dashboard from './components/Dashboard';
+import TaskManager from './components/TaskManager';
+import PomodoroTimer from './components/PomodoroTimer';
+import ReflectionModal from './components/ReflectionModal';
+import NotificationCenter from './components/NotificationCenter';
+import { Toaster } from '@/components/ui/toaster';
+
+const App = () => {
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isReflectionModalOpen, setIsReflectionModalOpen] = useState(false);
+
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  return (
+    <Router>
+      <div className={`flex h-screen ${isFullScreen ? 'overflow-hidden' : ''}`}>
+        <Sidebar 
+          toggleFullScreen={toggleFullScreen} 
+          isFullScreen={isFullScreen}
+        />
+        
+        <main className="flex-grow overflow-auto p-4">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/tasks" element={<TaskManager />} />
+            <Route path="/pomodoro" element={<PomodoroTimer />} />
+          </Routes>
+        </main>
+
+        <NotificationCenter />
+        
+        <ReflectionModal 
+          isOpen={isReflectionModalOpen}
+          onClose={() => setIsReflectionModalOpen(false)}
+        />
+
+        <Toaster />
+      </div>
+    </Router>
+  );
+};
+
+export default App;
