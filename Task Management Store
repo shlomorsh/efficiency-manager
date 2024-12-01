@@ -1,0 +1,60 @@
+import create from 'zustand';
+import { persist } from 'zustand/middleware';
+import { v4 as uuidv4 } from 'uuid';
+
+const useTaskStore = create(persist(
+  (set, get) => ({
+    tasks: [],
+    completedTasks: [],
+    
+    addTask: (task) => set((state) => ({
+      tasks: [...state.tasks, { 
+        ...task, 
+        id: uuidv4(), 
+        createdAt: new Date().toISOString() 
+      }]
+    })),
+
+    updateTask: (taskId, updates) => set((state) => ({
+      tasks: state.tasks.map(task => 
+        task.id === taskId ? { ...task, ...updates } : task
+      )
+    })),
+
+    deleteTask: (taskId) => set((state) => ({
+      tasks: state.tasks.filter(task => task.id !== taskId)
+    })),
+
+    completeTask: (taskId) => {
+      const completedTask = get().tasks.find(task => task.id === taskId);
+      
+      set((state) => ({
+        tasks: state.tasks.filter(task => task.id !== taskId),
+        completedTasks: [...state.completedTasks, {
+          ...completedTask,
+          completedAt: new Date().toISOString()
+        }]
+      }));
+    },
+
+    getDailyCompletionPercentage: () => {
+      const today = new Date().toISOString().split('T')[0];
+      const todaysTasks = get().tasks.filter(
+        task => task.createdAt.startsWith(today)
+      );
+      const completedTodayTasks = get().completedTasks.filter(
+        task => task.completedAt.startsWith(today)
+      );
+
+      return todaysTasks.length > 0 
+        ? (completedTodayTasks.length / todaysTasks.length) * 100 
+        : 0;
+    }
+  }),
+  {
+    name: 'efficiency-manager-storage',
+    getStorage: () => localStorage
+  }
+));
+
+export default useTaskStore;
